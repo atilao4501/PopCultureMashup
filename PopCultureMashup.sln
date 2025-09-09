@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopCultureMashup.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopCultureMashup.Domain", "PopCultureMashup.Domain\PopCultureMashup.Domain.csproj", "{231FB746-38F7-416B-B9FD-4CD162D79F40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopCultureMashup.Infraestructure", "PopCultureMashup.Infraestructure\PopCultureMashup.Infraestructure.csproj", "{A8488E82-A405-451E-AC5B-E61D0F39A766}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopCultureMashup.Infrastructure", "PopCultureMashup.Infrastructure\PopCultureMashup.Infrastructure.csproj", "{A8488E82-A405-451E-AC5B-E61D0F39A766}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

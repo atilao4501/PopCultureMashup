@@ -8,7 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,7 +28,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PopCultureMashup.Application\PopCultureMashup.Application.csproj" />
-      <ProjectReference Include="..\PopCultureMashup.Infraestructure\PopCultureMashup.Infraestructure.csproj" />
+      <ProjectReference Include="..\PopCultureMashup.Infrastructure\PopCultureMashup.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
