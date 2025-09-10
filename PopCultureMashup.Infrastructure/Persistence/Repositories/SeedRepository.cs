@@ -13,11 +13,12 @@ public class SeedRepository(AppDbContext db) : ISeedRepository
     }
 
     //READONLY BECAUSE OF NO TRACKING
-    public async Task<IReadOnlyList<Seed>> GetByUserAsync(Guid userId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Seed>> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
         return await db.Seeds
             .AsNoTracking()
             .Where(s => s.UserId == userId)
+            .Include(s => s.Item)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(ct);
     }

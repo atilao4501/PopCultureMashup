@@ -14,7 +14,6 @@ public class ItemRepository(AppDbContext db) : IItemRepository
 
     public async Task<Item> UpsertAsync(Item model, CancellationToken ct = default)
     {
-        // 1) Snapshot the incoming joins (strings) — never trust nav props from 'existing'
         var genres  = (model.Genres  ?? new List<ItemGenre>()).Select(g => g.Genre)
                         .Where(s => !string.IsNullOrWhiteSpace(s))
                         .Select(s => s.Trim())

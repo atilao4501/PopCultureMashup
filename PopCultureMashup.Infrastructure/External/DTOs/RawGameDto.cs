@@ -10,10 +10,12 @@ public class RawgGameDto
 
     public List<NamedValue> genres { get; set; } = new();
     public List<NamedValue>? developers { get; set; }
+    public List<NamedValue>? tags { get; set; } 
 
     public class NamedValue
     {
         public string name { get; set; } = "";
+        public string slug { get; set; } = ""; 
     }
 }
 

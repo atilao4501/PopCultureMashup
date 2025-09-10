@@ -2,7 +2,9 @@ using PopCultureMashup.Application.DTOs;
 using PopCultureMashup.Domain.Abstractions;
 using PopCultureMashup.Domain.Entities;
 
-public sealed class SeedItemsHandler
+namespace PopCultureMashup.Application.UseCases.Seed;
+
+public sealed class SeedItemsHandler : ISeedItemsHandler
 {
     private readonly IItemRepository _items;
     private readonly ISeedRepository _seeds;
@@ -16,13 +18,13 @@ public sealed class SeedItemsHandler
     public async Task<SeedResponse> HandleAsync(SeedRequest req, CancellationToken ct = default)
     {
         var upserted = 0;
-        var newSeeds = new List<Seed>();
+        var newSeeds = new List<Domain.Entities.Seed>();
 
         foreach (var i in req.Items)
         {
             Item? item = i.Type.ToLowerInvariant() switch
             {
-                "game" => await _rawg.FetchGameAsync(i.ExternalId, ct),
+                "game" => await _rawg.FetchGameAsyncByExternalID(i.ExternalId, ct),
                 "book" => await _openlib.FetchBookAsync(i.ExternalId, ct),
                 _ => throw new ArgumentException($"Unknown type '{i.Type}'")
             };
@@ -31,11 +33,11 @@ public sealed class SeedItemsHandler
             var persisted = await _items.UpsertAsync(item, ct);
             upserted++;
 
-            newSeeds.Add(new Seed
+            newSeeds.Add(new Domain.Entities.Seed
             {
                 Id = Guid.NewGuid(),
                 UserId = req.UserId,
-                ItemId = persisted.Id, 
+                ItemId = persisted.Id,
                 CreatedAt = DateTime.UtcNow
             });
         }

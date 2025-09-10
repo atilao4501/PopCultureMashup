@@ -71,7 +71,11 @@ public class AppDbContext : DbContext
         {
             e.ToTable("ItemThemes");
             e.HasKey(x => new { x.ItemId, x.Theme });
-            e.Property(x => x.Theme).HasMaxLength(80).IsRequired();
+            e.Property(x => x.Theme).HasMaxLength(120).IsRequired(); 
+            e.Property(x => x.Slug).HasMaxLength(120).IsRequired(); 
+            e.HasIndex(x => x.Theme);
+            
+            e.HasIndex(x => x.Slug);
             e.HasIndex(x => x.Theme);
 
             e.HasOne<Item>()
@@ -113,10 +117,11 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.UserId, x.ItemId }).IsUnique();
 
             // FK: Seed -> Item (Restrict)
-            e.HasOne<Item>()
-                .WithMany()
-                .HasForeignKey(x => x.ItemId)
+            e.HasOne(s => s.Item)        
+                .WithMany()              
+                .HasForeignKey(s => s.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
         });
 
         // RECOMMENDATIONS

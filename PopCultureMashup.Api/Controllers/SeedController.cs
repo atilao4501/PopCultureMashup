@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using PopCultureMashup.Application.DTOs;   // SeedRequest/SeedResponse
+using PopCultureMashup.Application.DTOs;
+using PopCultureMashup.Application.UseCases.Seed; // SeedRequest/SeedResponse
 
 namespace PopCultureMashup.Api.Controllers;
 
 [ApiController]
 [Route("seed")]
-public class SeedController : ControllerBase
+public class SeedController(ISeedItemsHandler handler) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<SeedResponse>> Post(
-        [FromServices] SeedItemsHandler handler,
         [FromBody] SeedRequest body,
         CancellationToken ct)
     {

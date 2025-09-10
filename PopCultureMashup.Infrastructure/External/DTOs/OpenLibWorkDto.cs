@@ -5,8 +5,13 @@ public class OpenLibWorkDto
     public string key { get; set; } = "";               // "/works/OL12345W"
     public string title { get; set; } = "";
     public string? first_publish_date { get; set; }     // "YYYY" ou "YYYY-MM-DD"
-    public object? description { get; set; }            // string ou { value = "" }
+    public DescriptionUnion? description { get; set; }       // string ou { value = "" }
     public List<string>? subjects { get; set; }
+    
+    public class DescriptionUnion
+    {
+        public string? value { get; set; }
+    }
 }
 
 public class OpenLibSearchPageDto

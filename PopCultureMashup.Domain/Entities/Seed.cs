@@ -24,6 +24,8 @@ namespace PopCultureMashup.Domain.Entities
         /// </summary>
         public Guid ItemId { get; set; }
         
+        public Item Item { get; set; } = null!;
+        
         /// <summary>
         /// The date and time when this item was selected as a seed.
         /// </summary>

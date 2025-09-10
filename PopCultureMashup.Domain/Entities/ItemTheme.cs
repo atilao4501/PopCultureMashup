@@ -18,5 +18,7 @@ namespace PopCultureMashup.Domain.Entities
         /// The name of the theme or narrative motif.
         /// </summary>
         public string Theme { get; set; } = null!;
+        
+        public string Slug { get; set; } = null!;
     }
 }
