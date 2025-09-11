@@ -11,7 +11,7 @@ public class GetRecommendationHandler(IRecommendationRepository recommendationRe
         var recommendationsFromDb = await recommendationRepository.GetByUserIdAsync(request.UserId);
 
         if (!recommendationsFromDb.Any())
-            throw new InvalidOperationException("No recommendations found for the user.");
+            throw new KeyNotFoundException($"No recommendations found for user with ID {request.UserId}");
 
         var result = recommendationsFromDb
             .SelectMany(r => r.Results)

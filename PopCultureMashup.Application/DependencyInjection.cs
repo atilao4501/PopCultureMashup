@@ -12,7 +12,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<ISeedItemsHandler, SeedItemsHandler>();
-        services.AddScoped<ISearchItemsHandler, SearchItemHandler>();
+        services.AddScoped<ISearchItemsHandler, SearchItemsHandler>();
         services.AddScoped<GenerateRecommendationsHandler>();
         services.AddScoped<GetRecommendationHandler>();
         services.AddSingleton<IRecommendationRanker, RecommendationRanker>();
