@@ -5,7 +5,7 @@ using PopCultureMashup.Application.UseCases.Seed; // SeedRequest/SeedResponse
 namespace PopCultureMashup.Api.Controllers;
 
 /// <summary>
-/// Controller responsible for initial seeding of games and books data
+/// API endpoints for initializing and populating the system database with games and books
 /// </summary>
 [ApiController]
 [Route("seed")]
@@ -13,14 +13,14 @@ namespace PopCultureMashup.Api.Controllers;
 public class SeedController(ISeedItemsHandler handler) : ControllerBase
 {
     /// <summary>
-    /// Performs initial seeding of games and books in the system
+    /// Imports a batch of games and books into the system database
     /// </summary>
-    /// <param name="body">List of items to seed</param>
+    /// <param name="body">Collection of items (games and books) to be imported into the system</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>Seed result with statistics of processed items</returns>
-    /// <response code="201">Seed completed successfully</response>
-    /// <response code="400">Invalid input data</response>
-    /// <response code="500">Internal server error</response>
+    /// <returns>Information about the seed operation including success count and errors</returns>
+    /// <response code="201">Items were successfully imported into the database</response>
+    /// <response code="400">If the request body is null or contains no items to seed</response>
+    /// <response code="500">If an unexpected error occurs during the seeding process</response>
     [HttpPost]
     [ProducesResponseType(typeof(SeedResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

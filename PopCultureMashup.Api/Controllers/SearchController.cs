@@ -5,7 +5,7 @@ using PopCultureMashup.Application.UseCases.Items;
 namespace PopCultureMashup.Api.Controllers;
 
 /// <summary>
-/// Controller responsible for searching games and books
+/// API endpoints for searching games and books across multiple databases
 /// </summary>
 [ApiController]
 [Route("search")]
@@ -13,14 +13,14 @@ namespace PopCultureMashup.Api.Controllers;
 public class SearchController(ISearchItemsHandler handler) : ControllerBase
 {
     /// <summary>
-    /// Searches for games and books based on a search term
+    /// Searches for games and books based on the provided query term
     /// </summary>
-    /// <param name="query">Search term to find games and books</param>
+    /// <param name="query">Text to search for matching games and books (title, description, etc.)</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>List of found games and books</returns>
-    /// <response code="200">Search completed successfully</response>
-    /// <response code="400">Invalid or empty search term</response>
-    /// <response code="500">Internal server error</response>
+    /// <returns>A collection of games and books matching the search criteria</returns>
+    /// <response code="200">Returns the list of items that match the search query</response>
+    /// <response code="400">If the search query is null, empty or invalid</response>
+    /// <response code="500">If an unexpected error occurs during the search process</response>
     [HttpGet]
     [ProducesResponseType(typeof(SearchItemResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
