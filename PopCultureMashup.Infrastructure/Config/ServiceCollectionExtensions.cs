@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
             .WaitAndRetryAsync(3, a =>
                 TimeSpan.FromSeconds(Math.Pow(2, a)) + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 150)));
 
-        var timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10));
+        var timeout = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
 
         var circuit = HttpPolicyExtensions
             .HandleTransientHttpError()
@@ -39,9 +39,9 @@ public static class ServiceCollectionExtensions
                 http.BaseAddress = new Uri(opt.BaseUrl); // e.g. https://api.rawg.io/api/
                 http.DefaultRequestHeaders.Add("Accept", "application/json");
             })
-            .AddPolicyHandler(timeout)
             .AddPolicyHandler(retry)
-            .AddPolicyHandler(circuit);
+            .AddPolicyHandler(circuit)
+            .AddPolicyHandler(timeout);
 
         // OpenLibrary (typed client)
         services.AddHttpClient<IOpenLibraryClient, OpenLibraryClient>((sp, http) =>
@@ -50,9 +50,9 @@ public static class ServiceCollectionExtensions
                 http.BaseAddress = new Uri(opt.BaseUrl); // e.g. https://openlibrary.org/
                 http.DefaultRequestHeaders.Add("Accept", "application/json");
             })
-            .AddPolicyHandler(timeout)
             .AddPolicyHandler(retry)
-            .AddPolicyHandler(circuit);
+            .AddPolicyHandler(circuit)
+            .AddPolicyHandler(timeout);
 
         return services;
     }

@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using PopCultureMashup.Infrastructure.External.Converters;
+
 namespace PopCultureMashup.Infrastructure.External.DTOs;
 
 public class OpenLibWorkDto
@@ -5,6 +8,7 @@ public class OpenLibWorkDto
     public string key { get; set; } = "";               // "/works/OL12345W"
     public string title { get; set; } = "";
     public string? first_publish_date { get; set; }     // "YYYY" ou "YYYY-MM-DD"
+    [JsonConverter(typeof(DescriptionUnionConverter))]
     public DescriptionUnion? description { get; set; }       // string ou { value = "" }
     public List<string>? subjects { get; set; }
     

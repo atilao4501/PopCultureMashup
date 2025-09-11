@@ -8,7 +8,4 @@ public interface IItemRepository
 
     Task<Item> UpsertAsync(Item item,
         CancellationToken ct = default);
-
-    Task AddSeedsAsync(IEnumerable<Seed> seeds, CancellationToken ct = default);
-    Task<IReadOnlyList<Seed>> GetRecentSeedsAsync(Guid userId, int take, CancellationToken ct = default);
 }
