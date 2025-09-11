@@ -10,7 +10,7 @@ public class RecommendationController(
     GenerateRecommendationsHandler generateRecommendationHandler,
     GetRecommendationHandler getRecommendationHandler) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("generate")]
     public async Task<ActionResult<List<ScoredItemDTOs.ScoredItem>>> GenerateRecommendations(
         [FromBody] GenerateRecommendationsDTOs.GenerateRecommendationsRequest body,
         CancellationToken ct)
@@ -20,5 +20,19 @@ public class RecommendationController(
 
         var res = await generateRecommendationHandler.HandleAsync(body, ct);
         return Ok(res);
+    }
+
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<List<GenerateRecommendationsDTOs.RecommendationsItem>>> GetRecommendations(
+        [FromRoute] Guid userId,
+        CancellationToken ct)
+    {
+        if (userId == Guid.Empty)
+            return BadRequest("UserId is required.");
+
+        var req = new GetRecommendationDTOs.GetRecommendationRequest(userId);
+
+        var res = await getRecommendationHandler.GetRecommendation(req);
+        return Ok(res.Recommendations);
     }
 }

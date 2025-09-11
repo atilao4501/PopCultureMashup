@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IItemRepository, ItemRepository>();
         services.AddScoped<ISeedRepository, SeedRepository>();
+        services.AddScoped<IRecommendationRepository, RecommendationRepository>();
         // depois: RecommendationRepository, FeedbackRepository etc
         return services;
     }

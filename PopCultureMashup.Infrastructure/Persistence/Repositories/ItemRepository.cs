@@ -102,4 +102,137 @@ public class ItemRepository(AppDbContext db) : IItemRepository
 
         return item; // with Id set
     }
+
+    public async Task<List<Item>> UpsertRangeAsync(IEnumerable<Item> incoming, CancellationToken ct = default)
+    {
+        var items = incoming
+            .Where(i => !string.IsNullOrWhiteSpace(i.Source) && !string.IsNullOrWhiteSpace(i.ExternalId))
+            .ToList();
+        
+        const string SEP = "||";
+        string Key(string s, string e) => $"{s}{SEP}{e}";
+
+        var keys = items.Select(i => Key(i.Source!, i.ExternalId!))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        var existing = await db.Items
+            .Where(x => keys.Contains(x.Source + SEP + x.ExternalId))
+            .ToListAsync(ct);
+        
+        var byKey = existing.ToDictionary(
+            e => Key(e.Source, e.ExternalId),
+            e => e,
+            StringComparer.OrdinalIgnoreCase);
+
+        var toInsert = new List<Item>();
+        var genresToAdd = new List<ItemGenre>();
+        var themesToAdd = new List<ItemTheme>();
+        var creatorsToAdd = new List<ItemCreator>();
+        
+        var updatedExistingIds = new HashSet<Guid>();
+
+        foreach (var i in items)
+        {
+            var key = Key(i.Source!, i.ExternalId!);
+
+            if (byKey.TryGetValue(key, out var found))
+            {
+                found.Title = i.Title;
+                found.Year = i.Year;
+                found.Popularity = i.Popularity;
+                found.Summary = i.Summary;
+
+                updatedExistingIds.Add(found.Id);
+
+                if (i.Genres is { Count: > 0 })
+                    genresToAdd.AddRange(i.Genres.Select(g => new ItemGenre
+                    {
+                        ItemId = found.Id,
+                        Genre = g.Genre
+                    }));
+
+                if (i.Themes is { Count: > 0 })
+                    themesToAdd.AddRange(i.Themes.Select(t => new ItemTheme
+                    {
+                        ItemId = found.Id,
+                        Theme = t.Theme,
+                        Slug = t.Slug ?? t.Theme
+                    }));
+
+                if (i.Creators is { Count: > 0 })
+                    creatorsToAdd.AddRange(i.Creators.Select(c => new ItemCreator
+                    {
+                        ItemId = found.Id,
+                        CreatorName = c.CreatorName,
+                        Slug = c.Slug
+                    }));
+            }
+            else
+            {
+                var core = new Item
+                {
+                    Id = Guid.NewGuid(),
+                    Type = i.Type,
+                    Title = i.Title,
+                    Year = i.Year,
+                    Popularity = i.Popularity,
+                    Summary = i.Summary,
+                    Source = i.Source!,
+                    ExternalId = i.ExternalId!
+                };
+
+                toInsert.Add(core);
+                byKey[key] = core;
+
+                if (i.Genres is { Count: > 0 })
+                    genresToAdd.AddRange(i.Genres.Select(g => new ItemGenre
+                    {
+                        ItemId = core.Id,
+                        Genre = g.Genre
+                    }));
+
+                if (i.Themes is { Count: > 0 })
+                    themesToAdd.AddRange(i.Themes.Select(t => new ItemTheme
+                    {
+                        ItemId = core.Id,
+                        Theme = t.Theme,
+                        Slug = t.Slug ?? t.Theme
+                    }));
+
+                if (i.Creators is { Count: > 0 })
+                    creatorsToAdd.AddRange(i.Creators.Select(c => new ItemCreator
+                    {
+                        ItemId = core.Id,
+                        CreatorName = c.CreatorName,
+                        Slug = c.Slug
+                    }));
+            }
+        }
+        
+        if (toInsert.Count > 0) db.Items.AddRange(toInsert);
+        
+        if (updatedExistingIds.Count > 0)
+        {
+            await db.ItemGenres
+                .Where(x => updatedExistingIds.Contains(x.ItemId))
+                .ExecuteDeleteAsync(ct);
+
+            await db.ItemThemes
+                .Where(x => updatedExistingIds.Contains(x.ItemId))
+                .ExecuteDeleteAsync(ct);
+
+            await db.ItemCreators
+                .Where(x => updatedExistingIds.Contains(x.ItemId))
+                .ExecuteDeleteAsync(ct);
+        }
+        
+        if (genresToAdd.Count > 0) db.ItemGenres.AddRange(genresToAdd);
+        if (themesToAdd.Count > 0) db.ItemThemes.AddRange(themesToAdd);
+        if (creatorsToAdd.Count > 0) db.ItemCreators.AddRange(creatorsToAdd);
+
+        await db.SaveChangesAsync(ct);
+
+        return byKey.Values.ToList();
+    }
 }

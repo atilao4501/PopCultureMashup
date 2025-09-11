@@ -13,6 +13,7 @@ public class RecommendationRepository(AppDbContext db) : IRecommendationReposito
                 .AsNoTracking()
                 .Where(r => r.UserId == userId)
                 .Include(r => r.Results)
+                .ThenInclude(rc => rc.Item)
                 .ToListAsync(ct);
 
         return userRecommendations;
@@ -23,5 +24,13 @@ public class RecommendationRepository(AppDbContext db) : IRecommendationReposito
         await db.Recommendations.AddAsync(rec, ct);
         await db.SaveChangesAsync(ct);
         return rec;
+    }
+    
+    public async Task AddRangeAsync(IEnumerable<Recommendation> recs, CancellationToken ct = default)
+    {
+        
+        
+        await db.Recommendations.AddRangeAsync(recs, ct);
+        await db.SaveChangesAsync(ct);
     }
 }

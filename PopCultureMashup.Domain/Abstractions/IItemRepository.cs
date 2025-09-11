@@ -8,4 +8,6 @@ public interface IItemRepository
 
     Task<Item> UpsertAsync(Item item,
         CancellationToken ct = default);
+
+    public Task<List<Item>> UpsertRangeAsync(IEnumerable<Item> incoming, CancellationToken ct = default);
 }

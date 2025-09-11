@@ -9,6 +9,7 @@ namespace PopCultureMashup.Application.UseCases.Recommend;
 public sealed class GenerateRecommendationsHandler(
     ISeedRepository repository,
     IItemRepository itemRepository,
+    IRecommendationRepository recommendationRepository,
     IRawgClient rawgClient,
     IOpenLibraryClient openLibClient,
     ILogger<GenerateRecommendationsHandler> logger,
@@ -37,28 +38,10 @@ public sealed class GenerateRecommendationsHandler(
             .Distinct()
             .ToList();
 
-        Task<IReadOnlyList<Item>>? gamesTask = rawgClient.DiscoverGamesAsync(allGenres, allThemes, ct: ct);
-        Task<IReadOnlyList<Item>>? booksTask = openLibClient.DiscoverBooksAsync(allThemes, allCreators, ct: ct);
-
-
-        // Task<IReadOnlyList<Item>>? gamesTask = null;
-        // Task<IReadOnlyList<Item>>? booksTask = null;
-        //
-        // // games
-        // if (gameSeeds.Any())
-        // {
-        //     var gameGenres = gameSeeds.SelectMany(s => s.Item.Genres).Select(g => g.Genre).Distinct();
-        //     var gameTags = gameSeeds.SelectMany(s => s.Item.Themes).Select(t => t.Theme).Distinct();
-        //     gamesTask = rawgClient.DiscoverGamesAsync(gameGenres, gameTags, ct: ct);
-        // }
-        //
-        // // books
-        // if (bookSeeds.Any())
-        // {
-        //     var subjects = bookSeeds.SelectMany(s => s.Item.Themes).Select(t => t.Theme).Distinct();
-        //     var authors = bookSeeds.SelectMany(s => s.Item.Creators).Select(c => c.CreatorName).Distinct();
-        //     booksTask = openLibClient.DiscoverBooksAsync(subjects, authors, ct: ct);
-        // }
+        Task<IReadOnlyList<Item>>? gamesTask =
+            rawgClient.DiscoverGamesAsync(allGenres, allThemes, pageSize: request.NumberOfRecommendations, ct: ct);
+        Task<IReadOnlyList<Item>>? booksTask =
+            openLibClient.DiscoverBooksAsync(allThemes, allCreators, limit: request.NumberOfRecommendations, ct: ct);
 
         var tasks = new List<Task<IReadOnlyList<Item>>>();
         tasks.Add(gamesTask);
@@ -106,30 +89,67 @@ public sealed class GenerateRecommendationsHandler(
         if (failures == tasks.Count)
             throw new InvalidOperationException("All sources failed to generate recommendations.");
 
+        var rankingOption = new RankingDTOs.RankingOptions(
+            SimilarityWeight: 0.65,
+            PopularityWeight: 0.10,
+            RecencyWeight: 0.05,
+            NoveltyWeight: 0.20,
+            UseDiversification: true,
+            DiversificationK: 50
+        );
+
         var ranked = ranker.Rank(
             recommendedItems,
             userSeedsFromDb,
-            new RankingDTOs.RankingOptions(
-                SimilarityWeight: 0.65,
-                PopularityWeight: 0.10,
-                RecencyWeight:    0.05,
-                NoveltyWeight:    0.20,
-                UseDiversification: true,
-                DiversificationK:  50 
-            ),
-            ct);
+            rankingOption, ct);
 
 
         var takeAmount = request.NumberOfRecommendations > 0 ? request.NumberOfRecommendations : 20;
-        List<GenerateRecommendationsDTOs.GenerateRecommendationsItemResponse> top =
-            ranked.Take(takeAmount).Select(s => (GenerateRecommendationsDTOs.GenerateRecommendationsItemResponse)s)
+
+
+        var topRanked = ranked.Take(takeAmount).ToList();
+
+
+        var session = new Recommendation
+        {
+            Id = Guid.NewGuid(),
+            UserId = request.UserId,
+            CreatedAt = DateTime.UtcNow,
+
+
+            TotalCandidates = recommendedItems.Count,
+            TotalReturned = topRanked.Count,
+            SimilarityW = (decimal?)rankingOption.SimilarityWeight,
+            PopularityW = (decimal?)rankingOption.PopularityWeight,
+            RecencyW = (decimal?)rankingOption.RecencyWeight,
+            NoveltyW = (decimal?)rankingOption.NoveltyWeight,
+        };
+
+        var persisted = await itemRepository.UpsertRangeAsync(topRanked.Select(x => x.Item), ct);
+        var idMap = persisted.ToDictionary(i => $"{i.Source}||{i.ExternalId}", i => i.Id,
+            StringComparer.OrdinalIgnoreCase);
+
+        int rankPos = 1;
+        foreach (var s in topRanked)
+        {
+            var key = $"{s.Item.Source}||{s.Item.ExternalId}";
+            session.Results.Add(new RecommendationResult
+            {
+                Id = Guid.NewGuid(),
+                RecommendationId = session.Id,
+                ItemId = idMap[key],
+                Rank = rankPos++,
+                Score = (decimal)s.Score,
+                GenresScore = 0, ThemesScore = 0, YearScore = 0, PopularityScore = 0, TextScore = 0, FranchiseBonus = 0
+            });
+        }
+
+        await recommendationRepository.SaveAsync(session, ct);
+
+        var top =
+            topRanked.Select(s => (GenerateRecommendationsDTOs.RecommendationsItem)s)
                 .ToList();
 
-        GenerateRecommendationsDTOs.GenerateRecommendationsResponse response =
-            new GenerateRecommendationsDTOs.GenerateRecommendationsResponse(top);
-
-        return response;
-
-        // TODO: persistir recommendedItems no banco.
+        return new GenerateRecommendationsDTOs.GenerateRecommendationsResponse(top);
     }
 }

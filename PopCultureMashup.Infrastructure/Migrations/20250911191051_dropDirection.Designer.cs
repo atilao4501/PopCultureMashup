@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PopCultureMashup.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using PopCultureMashup.Infrastructure.Persistence;
 namespace PopCultureMashup.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250911191051_dropDirection")]
+    partial class dropDirection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -376,7 +379,7 @@ namespace PopCultureMashup.Infrastructure.Migrations
 
             modelBuilder.Entity("PopCultureMashup.Domain.Entities.RecommendationResult", b =>
                 {
-                    b.HasOne("PopCultureMashup.Domain.Entities.Item", "Item")
+                    b.HasOne("PopCultureMashup.Domain.Entities.Item", null)
                         .WithMany()
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -387,8 +390,6 @@ namespace PopCultureMashup.Infrastructure.Migrations
                         .HasForeignKey("RecommendationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Item");
                 });
 
             modelBuilder.Entity("PopCultureMashup.Domain.Entities.Seed", b =>

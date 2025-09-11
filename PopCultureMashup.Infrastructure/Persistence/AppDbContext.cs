@@ -5,7 +5,9 @@ namespace PopCultureMashup.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Item> Items => Set<Item>();
@@ -41,9 +43,9 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Type).HasConversion<byte>().IsRequired(); // tinyint
             e.Property(x => x.Title).HasMaxLength(256).IsRequired();
-            e.Property(x => x.Year);                 // int? (NULL)
-            e.Property(x => x.Popularity);           // float? (NULL)
-            e.Property(x => x.Summary);              // nvarchar(max)? (NULL)
+            e.Property(x => x.Year); // int? (NULL)
+            e.Property(x => x.Popularity); // float? (NULL)
+            e.Property(x => x.Summary); // nvarchar(max)? (NULL)
             e.Property(x => x.Source).HasMaxLength(32).IsRequired();
             e.Property(x => x.ExternalId).HasMaxLength(100).IsRequired();
 
@@ -61,9 +63,9 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.Genre);
 
             e.HasOne<Item>()
-             .WithMany(i => i.Genres)
-             .HasForeignKey(x => x.ItemId)
-             .OnDelete(DeleteBehavior.Cascade); // apagar Item remove vínculos
+                .WithMany(i => i.Genres)
+                .HasForeignKey(x => x.ItemId)
+                .OnDelete(DeleteBehavior.Cascade); // apagar Item remove vínculos
         });
 
         // ITEM THEMES (join)
@@ -71,17 +73,17 @@ public class AppDbContext : DbContext
         {
             e.ToTable("ItemThemes");
             e.HasKey(x => new { x.ItemId, x.Theme });
-            e.Property(x => x.Theme).HasMaxLength(120).IsRequired(); 
-            e.Property(x => x.Slug).HasMaxLength(120).IsRequired(); 
+
+            e.Property(x => x.Theme).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Slug).HasMaxLength(120).IsRequired();
+
             e.HasIndex(x => x.Theme);
-            
             e.HasIndex(x => x.Slug);
-            e.HasIndex(x => x.Theme);
 
             e.HasOne<Item>()
-             .WithMany(i => i.Themes)
-             .HasForeignKey(x => x.ItemId)
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(i => i.Themes)
+                .HasForeignKey(x => x.ItemId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ITEM CREATORS (join)
@@ -93,9 +95,9 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.CreatorName);
 
             e.HasOne<Item>()
-             .WithMany(i => i.Creators)
-             .HasForeignKey(x => x.ItemId)
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(i => i.Creators)
+                .HasForeignKey(x => x.ItemId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // SEEDS
@@ -117,11 +119,10 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.UserId, x.ItemId }).IsUnique();
 
             // FK: Seed -> Item (Restrict)
-            e.HasOne(s => s.Item)        
-                .WithMany()              
+            e.HasOne(s => s.Item)
+                .WithMany()
                 .HasForeignKey(s => s.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
-
         });
 
         // RECOMMENDATIONS
@@ -129,13 +130,20 @@ public class AppDbContext : DbContext
         {
             e.ToTable("Recommendations");
             e.HasKey(x => x.Id);
+
             e.Property(x => x.UserId).IsRequired();
-            e.Property(x => x.Direction).HasConversion<byte>().IsRequired(); // tinyint
+            e.Property(x => x.TotalCandidates);
+            e.Property(x => x.TotalReturned);
+            e.Property(x => x.SimilarityW).HasColumnType("decimal(5,4)");
+            e.Property(x => x.PopularityW).HasColumnType("decimal(5,4)");
+            e.Property(x => x.RecencyW).HasColumnType("decimal(5,4)");
+            e.Property(x => x.NoveltyW).HasColumnType("decimal(5,4)");
             e.Property(x => x.CreatedAt)
                 .HasColumnType("datetime2")
                 .HasDefaultValueSql("SYSUTCDATETIME()")
                 .IsRequired();
 
+            // histórico por usuário (consulta mais comum: “as últimas sessões do user”)
             e.HasIndex(x => new { x.UserId, x.CreatedAt }).IsDescending(false, true);
         });
 
@@ -148,22 +156,22 @@ public class AppDbContext : DbContext
             e.Property(x => x.ItemId).IsRequired();
             e.Property(x => x.Rank).IsRequired();
 
-            // Scores com precisão decimal(5,2)
-            e.Property(x => x.Score).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.GenresScore).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.ThemesScore).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.YearScore).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.PopularityScore).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.TextScore).HasColumnType("decimal(5,2)").IsRequired();
-            e.Property(x => x.FranchiseBonus).HasColumnType("decimal(5,2)").IsRequired();
+            e.Property(x => x.Score).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.GenresScore).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.ThemesScore).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.YearScore).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.PopularityScore).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.TextScore).HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(x => x.FranchiseBonus).HasColumnType("decimal(9,6)").IsRequired();
 
-            // Result -> Recommendation (Cascade) | Result -> Item (Restrict)
+            e.HasIndex(x => new { x.RecommendationId, x.Rank }).IsUnique();
+
             e.HasOne<Recommendation>()
                 .WithMany(r => r.Results)
                 .HasForeignKey(x => x.RecommendationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            e.HasOne<Item>()
+            e.HasOne<Item>(x => x.Item)
                 .WithMany()
                 .HasForeignKey(x => x.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -213,8 +221,8 @@ public class AppDbContext : DbContext
 
             // Permite 0 ou 1 conjunto por usuário (UserId NULL = global)
             e.HasIndex(x => x.UserId)
-             .IsUnique()
-             .HasFilter("[UserId] IS NOT NULL");
+                .IsUnique()
+                .HasFilter("[UserId] IS NOT NULL");
         });
     }
 }

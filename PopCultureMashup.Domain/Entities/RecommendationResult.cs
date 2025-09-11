@@ -25,6 +25,8 @@ namespace PopCultureMashup.Domain.Entities
         /// </summary>
         public Guid ItemId { get; set; }
         
+        public Item Item { get; set; }
+        
         /// <summary>
         /// The ranking position of this item within its recommendation set.
         /// </summary>
