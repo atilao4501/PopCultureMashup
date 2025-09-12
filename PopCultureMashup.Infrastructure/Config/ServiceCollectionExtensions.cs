@@ -4,7 +4,10 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net;
+using PopCultureMashup.Application.Abstractions.Auth;
 using PopCultureMashup.Domain.Abstractions;
+using PopCultureMashup.Infrastructure.Auth;
+using PopCultureMashup.Infrastructure.Auth.Jwt;
 using PopCultureMashup.Infrastructure.Config;
 using PopCultureMashup.Infrastructure.External;
 using PopCultureMashup.Infrastructure.Persistence.Repositories;
@@ -13,6 +16,13 @@ namespace PopCultureMashup.Infrastructure.Config;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddAuth(this IServiceCollection services)
+    {
+        services.AddScoped<IJwtIssuer, JwtIssuer>();
+        services.AddScoped<IAuthService, AuthService>();
+        return services;
+    }
+    
     public static IServiceCollection AddExternalClients(this IServiceCollection services, IConfiguration config)
     {
         // Options

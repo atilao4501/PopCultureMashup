@@ -47,4 +47,12 @@ public sealed class SeedItemsHandler : ISeedItemsHandler
 
         return new SeedResponse(req.UserId, upserted, newSeeds.Count);
     }
+
+    public async Task<List<Item>> FetchUserSeedsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var seeds = await _seeds.GetByUserIdAsync(userId, ct)
+            ?? throw new InvalidOperationException("Seeds not found for the specified user.");
+        var items = seeds.Select(s => s.Item).ToList();
+        return items;
+    }
 }

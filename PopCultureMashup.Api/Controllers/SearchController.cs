@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PopCultureMashup.Application.DTOs;
 using PopCultureMashup.Application.UseCases.Items;
@@ -25,6 +26,7 @@ public class SearchController(ISearchItemsHandler handler) : ControllerBase
     [ProducesResponseType(typeof(SearchItemResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize]
     public async Task<ActionResult<SearchItemResponse>> Get(
         [FromQuery] string query,
         CancellationToken ct)

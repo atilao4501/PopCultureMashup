@@ -1,15 +1,18 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PopCultureMashup.Domain.Entities;
+using PopCultureMashup.Infrastructure.Auth.Entities;
+using PopCultureMashup.Infrastructure.Persistence.Entities;
 
 namespace PopCultureMashup.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
 
-    public DbSet<User> Users => Set<User>();
     public DbSet<Item> Items => Set<Item>();
     public DbSet<ItemGenre> ItemGenres => Set<ItemGenre>();
     public DbSet<ItemTheme> ItemThemes => Set<ItemTheme>();
@@ -19,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<RecommendationResult> RecommendationResults => Set<RecommendationResult>();
     public DbSet<Feedback> Feedback => Set<Feedback>();
     public DbSet<Weight> Weights => Set<Weight>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,7 +33,6 @@ public class AppDbContext : DbContext
         {
             e.ToTable("Users");
             e.HasKey(x => x.Id);
-            e.Property(x => x.Name).HasMaxLength(120);
             e.Property(x => x.CreatedAt)
                 .HasColumnType("datetime2")
                 .HasDefaultValueSql("SYSUTCDATETIME()")

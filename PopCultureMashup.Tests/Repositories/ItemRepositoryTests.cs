@@ -15,8 +15,8 @@ namespace PopCultureMashup.Tests.Repositories;
 public class ItemRepositoryTests
 {
     /// <summary>
-    /// Cria uma conexão SQLite in-memory e opções de DbContext.
-    /// IMPORTANTE: manter a conexão aberta até finalizar o teste.
+    /// Creates an in-memory SQLite connection and DbContext options.
+    /// IMPORTANT: keep the connection open until the test is finished.
     /// </summary>
     private static DbContextOptions<AppDbContext> CreateSqliteOptions(out SqliteConnection connection)
     {

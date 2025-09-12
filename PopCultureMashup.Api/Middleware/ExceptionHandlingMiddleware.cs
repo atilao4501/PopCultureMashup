@@ -1,28 +1,29 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace PopCultureMashup.Api.Middleware;
 
-public class ExceptionHandlingMiddleware
+public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred");
+            logger.LogError(ex, "Unhandled exception. TraceId={TraceId}", context.TraceIdentifier);
+
+            if (context.Response.HasStarted)
+            {
+                logger.LogWarning(
+                    "The response has already started, the error handling middleware will not be executed.");
+                throw;
+            }
+
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -31,47 +32,63 @@ public class ExceptionHandlingMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        var response = new ErrorResponse();
+        var response = new ErrorResponse
+        {
+            Timestamp = DateTime.UtcNow,
+            TraceId = context.TraceIdentifier
+        };
 
         switch (exception)
         {
             case ArgumentException argEx:
                 response.Message = argEx.Message;
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.BadRequest;
                 break;
-            
+
             case InvalidOperationException invOpEx:
                 response.Message = invOpEx.Message;
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.BadRequest;
                 break;
-            
+
+            case UnauthorizedAccessException unAuthEx:
+                response.Message = unAuthEx.Message;
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                break;
+
+            case SecurityTokenExpiredException:
+                response.Message = "Token expired.";
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                break;
+
             case KeyNotFoundException keyNotFoundEx:
                 response.Message = keyNotFoundEx.Message;
-                response.StatusCode = (int)HttpStatusCode.NotFound;
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.NotFound;
                 break;
-            
+
+            case DbUpdateException:
+                response.Message = "A persistence error occurred.";
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.Conflict;
+                break;
+
             default:
                 response.Message = "An error occurred while processing your request.";
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 break;
         }
 
-        var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+        var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
 
-        await context.Response.WriteAsync(jsonResponse);
+        await context.Response.WriteAsync(json);
     }
 }
 
-public class ErrorResponse
+public sealed class ErrorResponse
 {
     public string Message { get; set; } = string.Empty;
     public int StatusCode { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string? TraceId { get; set; }
 }

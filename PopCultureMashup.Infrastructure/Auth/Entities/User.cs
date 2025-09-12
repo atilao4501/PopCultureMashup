@@ -1,24 +1,14 @@
-using System;
+using Microsoft.AspNetCore.Identity;
 
-namespace PopCultureMashup.Domain.Entities
+namespace PopCultureMashup.Infrastructure.Auth.Entities
 {
     /// <summary>
     /// Represents an end user of the system.
     /// Stores basic identity information (name, creation date).
     /// Links to seeds, recommendations, feedback, and weights.
     /// </summary>
-    public class User
+    public class User : IdentityUser<Guid>
     {
-        /// <summary>
-        /// Unique identifier for the user.
-        /// </summary>
-        public Guid Id { get; set; }
-        
-        /// <summary>
-        /// The display name of the user.
-        /// </summary>
-        public string? Name { get; set; }
-        
         /// <summary>
         /// The date and time when the user account was created.
         /// </summary>
