@@ -198,13 +198,21 @@ curl -X GET "http://localhost:5000/recommendations/generate?numberOfRecommendati
 
 ```json
 {
-  "RecommendationOptions": {
+  "RecommendationSettings": {
     "SimilarityWeight": 0.65,
     "PopularityWeight": 0.10,
     "RecencyWeight": 0.05,
     "NoveltyWeight": 0.20,
     "UseDiversification": true,
-    "DiversificationK": 50
+    "DiversificationK": 50,
+    "ThemeWeightDefault": 0.50,
+    "GenreWeightDefault": 0.30,
+    "CreatorWeightDefault": 0.20,
+    "ThemeWeightBooks": 0.60,
+    "GenreWeightBooks": 0.15,
+    "CreatorWeightBooks": 0.25,
+    "HalfLifeGames": 4.0,
+    "HalfLifeBooks": 15.0
   }
 }
 ```

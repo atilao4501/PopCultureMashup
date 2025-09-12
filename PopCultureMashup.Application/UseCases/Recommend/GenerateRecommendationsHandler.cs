@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PopCultureMashup.Application.Abstractions;
 using PopCultureMashup.Application.DTOs;
+using PopCultureMashup.Application.Settings;
 using PopCultureMashup.Domain.Abstractions;
 using PopCultureMashup.Domain.Entities;
 
@@ -13,7 +15,8 @@ public sealed class GenerateRecommendationsHandler(
     IRawgClient rawgClient,
     IOpenLibraryClient openLibClient,
     ILogger<GenerateRecommendationsHandler> logger,
-    IRecommendationRanker ranker)
+    IRecommendationRanker ranker,
+    IOptions<RecommendationSettings> settings)
 {
     public async Task<GenerateRecommendationsDTOs.GenerateRecommendationsResponse> HandleAsync(
         GenerateRecommendationsDTOs.GenerateRecommendationsRequest request,
@@ -89,13 +92,14 @@ public sealed class GenerateRecommendationsHandler(
         if (failures == tasks.Count)
             throw new InvalidOperationException("All sources failed to generate recommendations.");
 
+        var cfg = settings.Value;
         var rankingOption = new RankingDTOs.RankingOptions(
-            SimilarityWeight: 0.65,
-            PopularityWeight: 0.10,
-            RecencyWeight: 0.05,
-            NoveltyWeight: 0.20,
-            UseDiversification: true,
-            DiversificationK: 50
+            SimilarityWeight: cfg.SimilarityWeight,
+            PopularityWeight: cfg.PopularityWeight,
+            RecencyWeight: cfg.RecencyWeight,
+            NoveltyWeight: cfg.NoveltyWeight,
+            UseDiversification: cfg.UseDiversification,
+            DiversificationK: cfg.DiversificationK
         );
 
         var ranked = ranker.Rank(
@@ -140,6 +144,7 @@ public sealed class GenerateRecommendationsHandler(
                 ItemId = idMap[key],
                 Rank = rankPos++,
                 Score = (decimal)s.Score,
+                //TODO detailed scores for dynamic weights
                 GenresScore = 0, ThemesScore = 0, YearScore = 0, PopularityScore = 0, TextScore = 0, FranchiseBonus = 0
             });
         }

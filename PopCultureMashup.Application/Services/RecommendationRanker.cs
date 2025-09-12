@@ -3,27 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Options;
 using PopCultureMashup.Application.DTOs;
 using PopCultureMashup.Application.Abstractions;
+using PopCultureMashup.Application.Settings;
 using PopCultureMashup.Domain.Entities;
 
 namespace PopCultureMashup.Application.Services
 {
     public sealed class RecommendationRanker : IRecommendationRanker
     {
-        // Base component weights for similarity (fallback/default)
-        private const double THEME_WEIGHT_DEFAULT = 0.50;
-        private const double GENRE_WEIGHT_DEFAULT = 0.30;
-        private const double CREATOR_WEIGHT_DEFAULT = 0.20;
+        // configuration settings
+        private readonly RecommendationSettings _cfg;
 
-        // Domain-specific similarity weights (books favor themes/authors over genres)
-        private const double THEME_WEIGHT_BOOKS = 0.60;
-        private const double GENRE_WEIGHT_BOOKS = 0.15;
-        private const double CREATOR_WEIGHT_BOOKS = 0.25;
-
-        // Recency half-life (years) per domain
-        private const double HALF_LIFE_GAMES = 4.0;
-        private const double HALF_LIFE_BOOKS = 15.0;
+        // constructor
+        public RecommendationRanker(IOptions<RecommendationSettings> options)
+        {
+            _cfg = options.Value;
+        }
 
         // Soft clamp to avoid exactly 0.0 or 1.0 after normalization
         private static double SoftClamp01(double v) => Math.Min(0.999, Math.Max(0.001, v));
@@ -148,9 +145,9 @@ namespace PopCultureMashup.Application.Services
 
                 // Type-aware similarity weights
                 bool isBook = i.Type == ItemType.Book;
-                double themeW = isBook ? THEME_WEIGHT_BOOKS : THEME_WEIGHT_DEFAULT;
-                double genreW = isBook ? GENRE_WEIGHT_BOOKS : GENRE_WEIGHT_DEFAULT;
-                double creatorW = isBook ? CREATOR_WEIGHT_BOOKS : CREATOR_WEIGHT_DEFAULT;
+                double themeW = isBook ? _cfg.ThemeWeightBooks : _cfg.ThemeWeightDefault;
+                double genreW = isBook ? _cfg.GenreWeightBooks : _cfg.GenreWeightDefault;
+                double creatorW = isBook ? _cfg.CreatorWeightBooks : _cfg.CreatorWeightDefault;
 
                 double simThemes = WeightedJaccardIndex(seedThemeFreq, themeFreq);
                 double simGenres = JaccardIndex(genres, seedGenres);
@@ -164,7 +161,7 @@ namespace PopCultureMashup.Application.Services
                     : 50;
 
                 // Softer recency for books
-                double halfLife = isBook ? HALF_LIFE_BOOKS : HALF_LIFE_GAMES;
+                double halfLife = isBook ? _cfg.HalfLifeBooks : _cfg.HalfLifeGames;
                 double k = isBook ? 0.6 : 1.0;
                 double recency = Math.Exp(-(k * ageYears / Math.Max(1.0, halfLife)));
 
@@ -387,3 +384,4 @@ namespace PopCultureMashup.Application.Services
         }
     }
 }
+

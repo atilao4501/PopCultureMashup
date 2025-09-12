@@ -5,9 +5,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using PopCultureMashup.Application.Abstractions;
 using PopCultureMashup.Application.DTOs;
+using PopCultureMashup.Application.Settings;
 using PopCultureMashup.Application.UseCases.Recommend;
 using PopCultureMashup.Domain.Abstractions;
 using PopCultureMashup.Domain.Entities;
@@ -24,7 +26,31 @@ namespace PopCultureMashup.Tests.UseCases
         private readonly Mock<IOpenLibraryClient> _openLib = new();
         private readonly Mock<IRecommendationRanker> _ranker = new();
         private readonly Mock<ILogger<GenerateRecommendationsHandler>> _logger = new();
+        private readonly IOptions<RecommendationSettings> _options;
 
+        public GenerateRecommendationsHandlerTests()
+        {
+            var settings = new RecommendationSettings
+            {
+                SimilarityWeight = 0.65,
+                PopularityWeight = 0.1,
+                RecencyWeight = 0.05,
+                NoveltyWeight = 0.2,
+                UseDiversification = true,
+                DiversificationK = 50,
+                ThemeWeightDefault = 0.5,
+                GenreWeightDefault = 0.3,
+                CreatorWeightDefault = 0.2,
+                ThemeWeightBooks = 0.6,
+                GenreWeightBooks = 0.15,
+                CreatorWeightBooks = 0.25,
+                HalfLifeGames = 4,
+                HalfLifeBooks = 15
+            };
+    
+            _options = Options.Create(settings);
+        }
+        
         private GenerateRecommendationsHandler CreateHandler()
             => new(
                 _seedRepo.Object,
@@ -33,7 +59,8 @@ namespace PopCultureMashup.Tests.UseCases
                 _rawg.Object,
                 _openLib.Object,
                 _logger.Object,
-                _ranker.Object
+                _ranker.Object,
+                _options
             );
 
         private static Seed MakeSeedGameWithTheme(string theme, string? genre = null, string? creator = null)

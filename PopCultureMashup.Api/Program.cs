@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PopCultureMashup.Infrastructure.Auth.Entities;
+using PopCultureMashup.Application.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,8 @@ builder.Services.AddControllers()
 
 // Custom extension methods for DI
 builder.Services.AddApplication();
+// Bind RecommendationSettings from configuration
+builder.Services.Configure<RecommendationSettings>(builder.Configuration.GetSection("RecommendationSettings"));
 builder.Services.AddRepositories();
 builder.Services.AddAuth();
 builder.Services.AddExternalClients(builder.Configuration);

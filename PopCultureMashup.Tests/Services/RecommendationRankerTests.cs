@@ -1,15 +1,45 @@
+using Microsoft.Extensions.Options;
 using PopCultureMashup.Application.Services;
+using PopCultureMashup.Application.Settings;
 using PopCultureMashup.Domain.Entities;
 
 namespace PopCultureMashup.Tests.Services;
 
 public class RecommendationRankerTests
 {
+    private readonly IOptions<RecommendationSettings> _options;
+    
+    public RecommendationRankerTests()
+    {
+        var settings = new RecommendationSettings
+        {
+            SimilarityWeight = 0.65,
+            PopularityWeight = 0.1,
+            RecencyWeight = 0.05,
+            NoveltyWeight = 0.2,
+            UseDiversification = true,
+            DiversificationK = 50,
+            ThemeWeightDefault = 0.5,
+            GenreWeightDefault = 0.3,
+            CreatorWeightDefault = 0.2,
+            ThemeWeightBooks = 0.6,
+            GenreWeightBooks = 0.15,
+            CreatorWeightBooks = 0.25,
+            HalfLifeGames = 4,
+            HalfLifeBooks = 15
+        };
+    
+        _options = Options.Create(settings);
+    }
+    
     [Fact]
     public void Rank_WhenThemeMatchesExist_ShouldRankHigherThanOnlyGenreOrCreator()
     {
+        
+   
+        
         // Arrange
-        var ranker = new RecommendationRanker();
+        var ranker = new RecommendationRanker(_options);
         
         var seed = new Seed 
         { 
@@ -61,7 +91,7 @@ public class RecommendationRankerTests
     public void Rank_PrefersRecentAndThemeMatches()
     {
         // Arrange
-        var ranker = new RecommendationRanker();
+        var ranker = new RecommendationRanker(_options);
         
         var seed = new Seed 
         { 
@@ -101,7 +131,7 @@ public class RecommendationRankerTests
     public void Rank_AppliesDifferentHalfLifeBasedOnItemType()
     {
         // Arrange
-        var ranker = new RecommendationRanker();
+        var ranker = new RecommendationRanker(_options);
         var currentYear = DateTime.Now.Year;
         
         var seed = new Seed 
