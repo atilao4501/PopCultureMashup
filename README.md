@@ -132,13 +132,13 @@ cd PopCultureMashup
 cd PopCultureMashup.Api
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Your_Connection_String"
 dotnet user-secrets set "Jwt:Key" "Your_32_Character_Plus_Secret_Key_Here"
-dotnet user-secrets set "Jwt:Issuer" "PopCultureMashup"
-dotnet user-secrets set "Jwt:Audience" "PopCultureMashup"
+dotnet user-secrets set "Jwt:Issuer" "PopMashup"
+dotnet user-secrets set "Jwt:Audience" "PopMashup.Api"
 dotnet user-secrets set "Jwt:AccessTokenMinutes" "60"
 dotnet user-secrets set "Jwt:RefreshTokenDays" "7"
-dotnet user-secrets set "Rawg:ApiKey" "Your_RAWG_API_Key"
-dotnet user-secrets set "Rawg:BaseUrl" "https://api.rawg.io/api/"
-dotnet user-secrets set "OpenLibrary:BaseUrl" "https://openlibrary.org/"
+dotnet user-secrets set "External:Rawg:ApiKey" "Your_RAWG_API_Key"
+dotnet user-secrets set "External:Rawg:BaseUrl" "https://api.rawg.io/api/"
+dotnet user-secrets set "External:OpenLibrary:BaseUrl" "https://openlibrary.org/"
 ```
 
 3. **Database Setup**:
@@ -200,10 +200,27 @@ curl -X POST "http://localhost:5000/auth/login" \
 
 ### Adding Seeds (Preferences)
 
-```bash
+curl -X POST "http://localhost:5000/seed/create" \
 curl -X POST "http://localhost:5000/seed" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
+  -d '[
+    {"type":"game","externalId":"3498"},
+    {"type":"book","externalId":"OL7353617M"}
+]'
+```
+
+### Retrieving Seeds
+
+```bash
+curl -X GET "http://localhost:5000/seed" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Searching Items
+
+```bash
+curl -X GET "http://localhost:5000/search?query=tolkien" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
   -d '{"externalId":"3498","itemType":"Game"}'
 ```
 
@@ -288,7 +305,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Performance Metrics
 
-- **Response Time**: < 2 seconds for recommendation generation
+- **Response Time**: < 15 seconds for recommendation generation
 - **External API Resilience**: Continues operating if one service fails
 - **Database Efficiency**: Optimized queries with proper indexing
 - **Memory Usage**: Efficient object lifecycle management
