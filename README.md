@@ -1,130 +1,89 @@
 # PopCultureMashup
 
-A sophisticated recommendation system API that delivers personalized game and book recommendations based on user
-preferences. Built with .NET 8 and Clean Architecture principles, the system integrates with external APIs (RAWG for
-games, OpenLibrary for books) to provide intelligent cross-media recommendations.
+A recommendation system API that delivers personalized game and book recommendations based on user preferences. Built with .NET 8 and Clean Architecture. Integrates with RAWG (games) and OpenLibrary (books) to provide intelligent cross‑media recommendations.
 
-## 🚀 Features
+## Features
 
-### Core Functionality
-
-- **Personalized Recommendations**: Advanced algorithm generates tailored recommendations based on user preferences
-- **Cross-Media Intelligence**: Recommends both games and books using unified preference analysis
-- **Smart Ranking System**: Multi-factor scoring algorithm considering similarity, popularity, recency, and novelty
-- **Seed-Based Learning**: Uses user-provided "seed" items to understand preferences and generate recommendations
-- **Content Diversification**: MMR (Maximal Marginal Relevance) algorithm ensures variety in recommendations
+### Core
+- Personalized recommendations from user “seed” items (liked games/books)
+- Cross‑media intelligence (games and books in one model)
+- Multi‑factor ranking (similarity, popularity, recency, novelty)
+- Diversification with MMR (Maximal Marginal Relevance)
 
 ### Authentication & Security
-
-- **JWT Authentication**: Secure token-based authentication with refresh token rotation
-- **User Management**: Complete registration, login, and profile management
-- **Protected Endpoints**: Recommendation endpoints require authentication
-- **Identity Integration**: Built on ASP.NET Core Identity with custom user entities
+- JWT authentication with refresh tokens
+- User registration, login, and profile management
+- Protected endpoints
+- ASP.NET Core Identity with custom user entities
 
 ### External Integrations
+- RAWG API (video games)
+- OpenLibrary API (books)
+- Resilient error handling for external calls
 
-- **RAWG API**: Video game data and discovery
-- **OpenLibrary API**: Book data and search capabilities
-- **Robust Error Handling**: Graceful handling of external API failures
+## Architecture
 
-### Advanced Recommendation Features
-
-- **Multi-Factor Scoring**: Combines theme similarity (50%), genre matching (30%), and creator affinity (20%)
-- **Domain-Specific Weights**: Different scoring weights for books vs games
-- **Recency Decay**: Time-aware scoring with different half-life values (4 years for games, 15 years for books)
-- **Popularity Balancing**: Considers item popularity while avoiding mainstream bias
-- **Novelty Detection**: Promotes discovery of lesser-known but relevant items
-
-## 🏗️ Architecture
-
-The project follows **Clean Architecture** principles with clear separation of concerns:
+Clean Architecture with clear separation of concerns:
 
 ```
 PopCultureMashup/
-├── PopCultureMashup.Api/           # Web API Layer
-├── PopCultureMashup.Application/   # Use Cases & Business Logic
-├── PopCultureMashup.Domain/        # Core Domain Entities
-├── PopCultureMashup.Infrastructure/# External Concerns & Data Access
-└── PopCultureMashup.Tests/         # Comprehensive Test Suite
+├── PopCultureMashup.Api/            # Web API
+├── PopCultureMashup.Application/    # Use cases / business logic
+├── PopCultureMashup.Domain/         # Domain entities
+├── PopCultureMashup.Infrastructure/ # Data access, external services
+└── PopCultureMashup.Tests/          # Tests
 ```
 
 ### Technology Stack
+- .NET 8
+- SQL Server + Entity Framework Core
+- JWT + ASP.NET Core Identity
+- Swagger / OpenAPI
+- Docker (Compose)
+- xUnit test suite
 
-- **Framework**: .NET 8.0
-- **Database**: SQL Server with Entity Framework Core
-- **Authentication**: JWT Bearer tokens with ASP.NET Core Identity
-- **API Documentation**: Swagger/OpenAPI
-- **Containerization**: Docker support
-- **Testing**: xUnit with comprehensive unit tests
+## Recommendation Algorithm (Overview)
 
-## 📊 Recommendation Algorithm
+- **Similarity** (themes, genres, creators) with domain‑specific weights  
+  - Books emphasize themes and authors  
+  - Games balance themes, genres, creators
+- **Temporal scoring** with exponential recency decay  
+  - Games use a shorter half‑life; books a longer one
+- **Final ranking** combines: Similarity, Novelty, Popularity, Recency  
+- **Diversification** with MMR to reduce redundancy
 
-### Similarity Calculation
+## API Endpoints (Selected)
 
-The system uses a sophisticated multi-component similarity algorithm:
-
-1. **Theme Matching (50% weight)**: Weighted Jaccard index for thematic similarity
-2. **Genre Matching (30% weight)**: Jaccard index for genre overlap
-3. **Creator Affinity (20% weight)**: Jaccard index for creator/author preferences
-
-### Domain-Specific Scoring
-
-- **Books**: Higher emphasis on themes (60%) and authors (25%), lower on genres (15%)
-- **Games**: Balanced approach with themes (50%), genres (30%), creators (20%)
-
-### Temporal Scoring
-
-- **Recency Decay**: Exponential decay based on item age
-- **Games**: 4-year half-life (faster technology evolution)
-- **Books**: 15-year half-life (longer cultural relevance)
-
-### Final Ranking
-
-Combined score using configurable weights:
-
-- **Similarity**: 65% (core preference matching)
-- **Novelty**: 20% (discovery encouragement)
-- **Popularity**: 10% (quality indicator)
-- **Recency**: 5% (temporal relevance)
-
-## 🔗 API Endpoints
-
-### Authentication
-
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User authentication
-- `POST /auth/refresh` - Token refresh
-- `GET /auth/me` - Current user information
+### Auth
+- `POST /auth/register` — register
+- `POST /auth/login` — authenticate
+- `POST /auth/refresh` — refresh token
+- `GET  /auth/me` — current user
 
 ### Recommendations
+- `GET /recommendations/generate?numberOfRecommendations=10` — generate
+- `GET /recommendations` — list stored recommendations
 
-- `GET /recommendations/generate?numberOfRecommendations=10` - Generate new recommendations
-- `GET /recommendations` - Retrieve stored recommendations
+### Data
+- `POST /seed` — add seed items (preferences)
+- `GET  /seed` — list user seeds
+- `GET  /search?query=...&type=...` — search games/books
 
-### Data Management
-
-- `POST /seed` - Add preference seeds (liked items)
-- `GET /seed` - Retrieve user seeds
-- `GET /search?query=...&type=...` - Search games/books
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-
-- .NET 8.0 SDK
+- .NET 8 SDK
 - SQL Server (or SQL Server Express)
 - Docker (optional)
 
 ### Configuration
-
-1. **Clone the repository**:
 
 ```bash
 git clone https://github.com/atilao4501/PopCultureMashup.git
 cd PopCultureMashup
 ```
 
-2. **Configure User Secrets**:
+Set secrets (API project):
 
 ```bash
 cd PopCultureMashup.Api
@@ -139,197 +98,117 @@ dotnet user-secrets set "External:Rawg:BaseUrl" "https://api.rawg.io/api/"
 dotnet user-secrets set "External:OpenLibrary:BaseUrl" "https://openlibrary.org/"
 ```
 
-3. **Database Setup**:
+Create/update database:
 
 ```bash
-dotnet ef database update --project PopCultureMashup.Infrastructure --startup-project PopCultureMashup.Api
+dotnet ef database update --project ../PopCultureMashup.Infrastructure --startup-project .
 ```
 
-4. **Run the Application**:
+Run locally:
 
 ```bash
-dotnet run --project PopCultureMashup.Api
+dotnet run --project .
 ```
 
-## 🐳 Running with Docker
+## Running with Docker
 
-Run the full stack with Docker Compose: the API and a SQL Server database come up together, fully isolated and ready to
-use.
+Bring up API and SQL Server with Docker Compose (root of repo).
 
-What you get:
+1) Configure environment values in `docker-compose.yml`:
+- `MSSQL_SA_PASSWORD` — strong SA password (min 8 chars, complexity)
+- `ConnectionStrings__DefaultConnection` — uses the same password
+- `External__Rawg__ApiKey` — your RAWG key
+- `Jwt__Key` — secret (≥ 32 chars)
 
-- API on http://localhost:8080 (Kestrel inside the container listens on 8080)
-- SQL Server on localhost:1433 (container name: `popmashup-sql`)
-- Persistent data via the named volume `mssql_data`
-- Automatic EF Core migrations applied on API startup
-
-### 1) Configure environment values (one-time)
-
-Open `docker-compose.yml` and replace the placeholders:
-
-- `MSSQL_SA_PASSWORD` — strong SQL Server SA password (min. 8 chars, complexity required)
-- `ConnectionStrings__DefaultConnection` — keep the same password used above
-- `External__Rawg__ApiKey` — your RAWG API key
-- `Jwt__Key` — a secret key with at least 32 characters
-
-### 2) Start with Docker Compose
-
-From the repository root:
+2) Start:
 
 ```bash
 docker compose up --build
 ```
 
-Wait for the `sqlserver` healthcheck to pass; the API will start automatically right after.
+3) Access:
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger`
+- SQL Server: `localhost,1433` (container `popmashup-sql`)
 
-### 3) Access
-
-- Swagger UI: http://localhost:8080/swagger
-- SQL Server (optional external clients): Server=localhost,1433; User=sa; Password=<your password>
-
-To stop:
+Stop and remove:
 
 ```bash
 docker compose down
-```
-
-To reset data (also removes the named volume):
-
-```bash
+# or reset data as well:
 docker compose down -v
 ```
 
-## 📚 API Documentation
+## API Documentation
 
-Once running, access the interactive API documentation at:
+- Swagger UI (Docker): `http://localhost:8080/swagger`  
+- Swagger UI (local): `http://localhost:5000/swagger`
 
-- Swagger UI (Docker Compose): `http://localhost:8080/swagger`
-- ReDoc (Docker Compose): `http://localhost:8080/redoc`
-- Swagger UI (local dotnet run): `http://localhost:5000/swagger`
-- ReDoc (local dotnet run): `http://localhost:5000/redoc`
-
-## 🧪 Testing
-
-Run the comprehensive test suite:
+## Testing
 
 ```bash
 dotnet test
 ```
 
-The test suite includes:
+Covers:
+- Unit tests for business logic
+- Integration tests for endpoints
+- Repository and service tests
 
-- **Unit Tests**: Core business logic validation
-- **Integration Tests**: API endpoint testing
-- **Repository Tests**: Data access layer validation
-- **Service Tests**: External service integration testing
+## Usage Examples
 
-## 📈 Usage Examples
-
-### Authentication Flow
+### Register and Login
 
 ```bash
-# Register new user
-curl -X POST "http://localhost:5000/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"SecurePass123"}'
+# Register
+curl -X POST "http://localhost:5000/auth/register"   -H "Content-Type: application/json"   -d '{"email":"user@example.com","password":"SecurePass123"}'
 
 # Login
-curl -X POST "http://localhost:5000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"SecurePass123"}'
+curl -X POST "http://localhost:5000/auth/login"   -H "Content-Type: application/json"   -d '{"email":"user@example.com","password":"SecurePass123"}'
 ```
 
-### Adding Seeds (Preferences)
-
-curl -X POST "http://localhost:5000/seed/create" \
-curl -X POST "http://localhost:5000/seed" \
--H "Authorization: Bearer YOUR_JWT_TOKEN" \
--d '[
-{"type":"game","externalId":"3498"},
-{"type":"book","externalId":"OL7353617M"}
-]'
-
-```
-
-### Retrieving Seeds
+### Add Seeds (Preferences)
 
 ```bash
-curl -X GET "http://localhost:5000/seed" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+curl -X POST "http://localhost:5000/seed"   -H "Authorization: Bearer YOUR_JWT_TOKEN"   -H "Content-Type: application/json"   -d '[{"type":"game","externalId":"3498"},{"type":"book","externalId":"OL7353617M"}]'
 ```
 
-### Searching Items
+### Retrieve Seeds
 
 ```bash
-curl -X GET "http://localhost:5000/search?query=tolkien" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-  -d '{"externalId":"3498","itemType":"Game"}'
+curl -X GET "http://localhost:5000/seed"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Search Items
+
+```bash
+curl -X GET "http://localhost:5000/search?query=tolkien&type=book"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ### Generate Recommendations
 
 ```bash
-curl -X GET "http://localhost:5000/recommendations/generate?numberOfRecommendations=10" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+curl -X GET "http://localhost:5000/recommendations/generate?numberOfRecommendations=10"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-## 🏆 Key Features Deep Dive
+## Configuration (Samples)
 
-### Intelligent Recommendation Engine
-
-- **Hybrid Approach**: Combines collaborative filtering concepts with content-based analysis
-- **Real-time Generation**: Recommendations generated on-demand using current preferences
-- **Adaptive Scoring**: Algorithm adapts to user's media type preferences (games vs books)
-
-### Data Persistence
-
-- **Recommendation History**: All generated recommendations are stored for analysis
-- **Detailed Scoring**: Individual component scores (genre, theme, popularity, etc.) are tracked
-- **User Seeds**: Long-term storage of user preferences for consistent recommendations
-
-### Scalability Features
-
-- **Async Processing**: All external API calls are asynchronous
-- **Error Resilience**: Graceful handling of external service failures
-- **Efficient Caching**: Strategic use of Entity Framework change tracking
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **RAWG API** - Comprehensive video game database
-- **OpenLibrary** - Open book data and search capabilities
-- **ASP.NET Core Team** - Excellent framework and documentation
-- **Entity Framework** - Powerful ORM for .NET
-
-## 🔧 Configuration Options
-
-### Recommendation Algorithm Tuning
+### Recommendation Tuning
 
 ```json
 {
   "RecommendationOptions": {
     "SimilarityWeight": 0.65,
-    "PopularityWeight": 0.1,
+    "PopularityWeight": 0.10,
     "RecencyWeight": 0.05,
-    "NoveltyWeight": 0.2,
+    "NoveltyWeight": 0.20,
     "UseDiversification": true,
     "DiversificationK": 50
   }
 }
 ```
 
-### External API Configuration
+### External APIs
 
 ```json
 {
@@ -345,13 +224,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 }
 ```
 
-## 📊 Performance Metrics
+## Performance (Targets)
 
-- **Response Time**: < 15 seconds for recommendation generation
-- **External API Resilience**: Continues operating if one service fails
-- **Database Efficiency**: Optimized queries with proper indexing
-- **Memory Usage**: Efficient object lifecycle management
+- Minimize external API calls and response time through efficient batching and filtering
+- EF Core queries optimized with appropriate tracking and projections
 
----
+## Roadmap
 
-**PopCultureMashup** - Bridging the gap between your favorite games and books through intelligent recommendations.
+Planned enhancements to increase performance, observability, and adaptability:
+
+- **Caching (Redis):** Cache search results and intermediate recommendation data to reduce latency and external API load; add cache-aware invalidation strategies.
+- **Structured Logging (Serilog):** Centralized, structured logs with enrichers and per-request correlation; environment-specific sinks.
+- **User Feedback Service:** Collect explicit feedback (like/skip/better matches) and dynamically adjust similarity weights/novelty thresholds to personalize ranking.
+- **Analytics & Insights:** Aggregate usage metrics and recommendation outcomes; dashboards for conversion/engagement; privacy-aware telemetry with opt-in.
+
+## Contributing
+
+1. Fork the repository  
+2. Create a feature branch: `git checkout -b feature/YourFeature`  
+3. Commit: `git commit -m "feat: add YourFeature"`  
+4. Push: `git push origin feature/YourFeature`  
+5. Open a Pull Request
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Acknowledgments
+
+- RAWG API  
+- OpenLibrary  
+- ASP.NET Core and Entity Framework teams
