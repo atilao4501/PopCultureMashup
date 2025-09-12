@@ -98,7 +98,7 @@ dotnet user-secrets set "External:Rawg:BaseUrl" "https://api.rawg.io/api/"
 dotnet user-secrets set "External:OpenLibrary:BaseUrl" "https://openlibrary.org/"
 ```
 
-Create/update database:
+Create/update database (dont worry, if you do not run these commands the app runs by default. Just make sure to have a DB running in the appropriate port estabilished in the secrets):
 
 ```bash
 dotnet ef database update --project ../PopCultureMashup.Infrastructure --startup-project .
