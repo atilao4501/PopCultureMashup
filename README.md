@@ -167,6 +167,13 @@ curl -X POST "http://localhost:5000/auth/register"   -H "Content-Type: applicati
 curl -X POST "http://localhost:5000/auth/login"   -H "Content-Type: application/json"   -d '{"email":"user@example.com","password":"SecurePass123"}'
 ```
 
+### Search Items
+
+```bash
+curl -X GET "http://localhost:5000/search?query=tolkien"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+It will respond with the externalId for the item that you want, and then you can create your own seeds for personal recommendations.
+
 ### Add Seeds (Preferences)
 
 ```bash
@@ -177,12 +184,6 @@ curl -X POST "http://localhost:5000/seed"   -H "Authorization: Bearer YOUR_JWT_T
 
 ```bash
 curl -X GET "http://localhost:5000/seed"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Search Items
-
-```bash
-curl -X GET "http://localhost:5000/search?query=tolkien&type=book"   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ### Generate Recommendations
