@@ -20,8 +20,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     public DbSet<Seed> Seeds => Set<Seed>();
     public DbSet<Recommendation> Recommendations => Set<Recommendation>();
     public DbSet<RecommendationResult> RecommendationResults => Set<RecommendationResult>();
-    public DbSet<Feedback> Feedback => Set<Feedback>();
-    public DbSet<Weight> Weights => Set<Weight>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -178,54 +176,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(x => x.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // FEEDBACK
-        modelBuilder.Entity<Feedback>(e =>
-        {
-            e.ToTable("Feedback");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.UserId).IsRequired();
-            e.Property(x => x.RecommendationId).IsRequired();
-            e.Property(x => x.ItemId).IsRequired();
-            e.Property(x => x.Value).HasColumnType("smallint").IsRequired();
-            e.Property(x => x.CreatedAt)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("SYSUTCDATETIME()")
-                .IsRequired();
-
-            // Feedback -> Recommendation (Restrict), Feedback -> Item (Restrict)
-            e.HasOne<Recommendation>()
-                .WithMany()
-                .HasForeignKey(x => x.RecommendationId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne<Item>()
-                .WithMany()
-                .HasForeignKey(x => x.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // WEIGHTS
-        modelBuilder.Entity<Weight>(e =>
-        {
-            e.ToTable("Weights");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Genres).IsRequired();
-            e.Property(x => x.Themes).IsRequired();
-            e.Property(x => x.Year).IsRequired();
-            e.Property(x => x.Popularity).IsRequired();
-            e.Property(x => x.Text).IsRequired();
-            e.Property(x => x.Franchise).IsRequired();
-            e.Property(x => x.UpdatedAt)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("SYSUTCDATETIME()")
-                .IsRequired();
-
-            // Permite 0 ou 1 conjunto por usuário (UserId NULL = global)
-            e.HasIndex(x => x.UserId)
-                .IsUnique()
-                .HasFilter("[UserId] IS NOT NULL");
         });
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PopCultureMashup.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using PopCultureMashup.Infrastructure.Persistence;
 namespace PopCultureMashup.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250912180223_dropFeedBack")]
+    partial class dropFeedBack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,6 +331,47 @@ namespace PopCultureMashup.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Seeds", (string)null);
+                });
+
+            modelBuilder.Entity("PopCultureMashup.Domain.Entities.Weight", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("Franchise")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Genres")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Popularity")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Text")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Themes")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("Year")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.ToTable("Weights", (string)null);
                 });
 
             modelBuilder.Entity("PopCultureMashup.Infrastructure.Auth.Entities.User", b =>
