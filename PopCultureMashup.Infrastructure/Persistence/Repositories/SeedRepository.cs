@@ -27,18 +27,22 @@ public class SeedRepository(AppDbContext db) : ISeedRepository
     }
 
     //READONLY BECAUSE OF NO TRACKING
+    //RAW SLQ JUST TO SHOW THAT I KNOW WHAT IM DOING
     public async Task<IReadOnlyList<Seed>> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
-        return await db.Seeds
+        var seeds = await db.Seeds
+            .FromSqlInterpolated($@"
+            SELECT s.*
+            FROM Seeds s
+            WHERE s.UserId = {userId}
+            ORDER BY s.CreatedAt DESC
+            OFFSET 0 ROWS")
             .AsNoTracking()
-            .Where(s => s.UserId == userId)
-            .Include(s => s.Item)
-            .ThenInclude(i => i.Genres)
-            .Include(s => s.Item)
-            .ThenInclude(i => i.Themes)
-            .Include(s => s.Item)
-            .ThenInclude(i => i.Creators)
-            .OrderByDescending(s => s.CreatedAt)
+            .Include(s => s.Item).ThenInclude(i => i.Genres)
+            .Include(s => s.Item).ThenInclude(i => i.Themes)
+            .Include(s => s.Item).ThenInclude(i => i.Creators)
             .ToListAsync(ct);
+
+        return seeds;
     }
 }
