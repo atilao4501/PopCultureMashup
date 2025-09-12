@@ -17,9 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-
-builder.Configuration.AddUserSecrets<Program>();
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>(optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -44,8 +44,8 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "API for searching, recommending, and managing games and books"
     });
-    
-    c.UseInlineDefinitionsForEnums(); 
+
+    c.UseInlineDefinitionsForEnums();
 
     // Configure Swagger to use the XML documentation file
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -145,5 +145,22 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Fail applying migrations");
+        throw;
+    }
+}
 
 await app.RunAsync();

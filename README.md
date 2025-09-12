@@ -1,6 +1,8 @@
 # PopCultureMashup
 
-A sophisticated recommendation system API that delivers personalized game and book recommendations based on user preferences. Built with .NET 8 and Clean Architecture principles, the system integrates with external APIs (RAWG for games, OpenLibrary for books) to provide intelligent cross-media recommendations.
+A sophisticated recommendation system API that delivers personalized game and book recommendations based on user
+preferences. Built with .NET 8 and Clean Architecture principles, the system integrates with external APIs (RAWG for
+games, OpenLibrary for books) to provide intelligent cross-media recommendations.
 
 ## 🚀 Features
 
@@ -105,10 +107,6 @@ Combined score using configurable weights:
 - `GET /seed` - Retrieve user seeds
 - `GET /search?query=...&type=...` - Search games/books
 
-### System
-
-- `POST /seed/populate` - Populate database with sample data
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -153,19 +151,62 @@ dotnet ef database update --project PopCultureMashup.Infrastructure --startup-pr
 dotnet run --project PopCultureMashup.Api
 ```
 
-### Docker Deployment
+## 🐳 Running with Docker
+
+Run the full stack with Docker Compose: the API and a SQL Server database come up together, fully isolated and ready to
+use.
+
+What you get:
+
+- API on http://localhost:8080 (Kestrel inside the container listens on 8080)
+- SQL Server on localhost:1433 (container name: `popmashup-sql`)
+- Persistent data via the named volume `mssql_data`
+- Automatic EF Core migrations applied on API startup
+
+### 1) Configure environment values (one-time)
+
+Open `docker-compose.yml` and replace the placeholders:
+
+- `MSSQL_SA_PASSWORD` — strong SQL Server SA password (min. 8 chars, complexity required)
+- `ConnectionStrings__DefaultConnection` — keep the same password used above
+- `External__Rawg__ApiKey` — your RAWG API key
+- `Jwt__Key` — a secret key with at least 32 characters
+
+### 2) Start with Docker Compose
+
+From the repository root:
 
 ```bash
-docker build -t popculturemashup .
-docker run -p 8080:8080 popculturemashup
+docker compose up --build
+```
+
+Wait for the `sqlserver` healthcheck to pass; the API will start automatically right after.
+
+### 3) Access
+
+- Swagger UI: http://localhost:8080/swagger
+- SQL Server (optional external clients): Server=localhost,1433; User=sa; Password=<your password>
+
+To stop:
+
+```bash
+docker compose down
+```
+
+To reset data (also removes the named volume):
+
+```bash
+docker compose down -v
 ```
 
 ## 📚 API Documentation
 
 Once running, access the interactive API documentation at:
 
-- **Swagger UI**: `http://localhost:5000/swagger`
-- **ReDoc**: `http://localhost:5000/redoc`
+- Swagger UI (Docker Compose): `http://localhost:8080/swagger`
+- ReDoc (Docker Compose): `http://localhost:8080/redoc`
+- Swagger UI (local dotnet run): `http://localhost:5000/swagger`
+- ReDoc (local dotnet run): `http://localhost:5000/redoc`
 
 ## 🧪 Testing
 
@@ -202,11 +243,12 @@ curl -X POST "http://localhost:5000/auth/login" \
 
 curl -X POST "http://localhost:5000/seed/create" \
 curl -X POST "http://localhost:5000/seed" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '[
-    {"type":"game","externalId":"3498"},
-    {"type":"book","externalId":"OL7353617M"}
+-H "Authorization: Bearer YOUR_JWT_TOKEN" \
+-d '[
+{"type":"game","externalId":"3498"},
+{"type":"book","externalId":"OL7353617M"}
 ]'
+
 ```
 
 ### Retrieving Seeds
