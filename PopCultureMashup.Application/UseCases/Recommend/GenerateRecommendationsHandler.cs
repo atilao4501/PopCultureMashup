@@ -153,6 +153,7 @@ public sealed class GenerateRecommendationsHandler(
 
         var top =
             topRanked.Select(s => (GenerateRecommendationsDTOs.RecommendationsItem)s)
+                .OrderByDescending(s => s.Score)
                 .ToList();
 
         return new GenerateRecommendationsDTOs.GenerateRecommendationsResponse(top);
