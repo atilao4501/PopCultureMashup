@@ -154,14 +154,18 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider
         .GetRequiredService<ILogger<Program>>();
 
+    logger.LogInformation("Starting database migration...");
+
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
+        logger.LogInformation("Database migration completed successfully.");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Fail applying migrations");
+        logger.LogError(ex, "Error applying migrations: {Message}", ex.Message);
+        logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
         throw;
     }
 }
